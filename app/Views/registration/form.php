@@ -16,7 +16,7 @@
             <div class="hero__tagline">
                 <span class="badge">SI VMI</span>
                 <h1>Formulir Pendaftaran</h1>
-                <p>Isi data dengan lengkap untuk mengamankan kursimu di program unggulan Kami. Kami bantu memilih program terbaik sesuai jenjang belajar.</p>
+                <p>Bimbel Gambar Villa Merah.</p>
             </div>
             
         </header>
@@ -72,6 +72,15 @@
                                 <span>Kelas</span>
                                 <select id="class-level" name="class_level" required disabled>
                                     <option value="">Pilih kelas</option>
+                                </select>
+                            </label>
+                            <label class="input-field">
+                                <span>Lokasi Belajar</span>
+                                <select id="study-location" name="study_location" required>
+                                    <option value="">Pilih lokasi belajar</option>
+                                    <option value="Bandung">Bandung</option>
+                                    <option value="Jaksel">Jaksel</option>
+                                    <option value="Jaktim">Jaktim</option>
                                 </select>
                             </label>
                             <label class="input-field">
@@ -139,6 +148,7 @@
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">Kirim Pendaftaran</button>
                         <p class="form-disclaimer">Dengan mengirim formulir, kamu menyetujui kebijakan privasi SI VMI.</p>
+                        
                     </div>
                 </form>
             </section>
@@ -162,6 +172,10 @@
                         <span class="summary-value" data-summary="class_level">-</span>
                     </li>
                     <li>
+                        <span class="summary-label">Lokasi</span>
+                        <span class="summary-value" data-summary="study_location">-</span>
+                    </li>
+                    <li>
                         <span class="summary-label">Nomor HP</span>
                         <span class="summary-value" data-summary="phone_number">-</span>
                     </li>
@@ -180,6 +194,7 @@
                         <li>Admin akan menghubungimu untuk konfirmasi pendaftaran.</li>
                         <li>Biaya pendaftaran dan pendidikan.</li>
                         <li>No rekening Resmi.</li>
+                        <p class="form-disclaimer"> call center 0857200770066 </P>
                     </ul>
                 </div>
             </aside>
@@ -193,3 +208,4 @@
     <script src="<?= htmlspecialchars(asset('assets/js/registration.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
 </body>
 </html>
+

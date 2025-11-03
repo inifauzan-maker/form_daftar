@@ -34,9 +34,12 @@
             <header class="dashboard__header">
                 <div>
                     <h1>Dashboard Pendaftar</h1>
-                    <p>Pantau status siswa dan proses pembayaran dalam satu tempat.</p>
+                    <p>Pantau status siswa dan proses pendaftaran dalam satu tempat.</p>
                 </div>
                 <div class="header-actions">
+                    <a class="btn-secondary" href="<?= htmlspecialchars(route_path('/dashboard/export'), ENT_QUOTES, 'UTF-8') ?>">
+                        Export CSV
+                    </a>
                     <button id="refresh-button" class="btn-secondary">Muat ulang</button>
                 </div>
             </header>
@@ -57,6 +60,11 @@
                 <div class="stats-card">
                     <span class="stats-label">Belum Bayar</span>
                     <strong id="stat-unpaid">0</strong>
+                </div>
+                <div class="stats-card">
+                    <span class="stats-label">Program Populer</span>
+                    <strong id="stat-program-name">-</strong>
+                    <span class="stats-sub" id="stat-program-count">0 pendaftar</span>
                 </div>
             </section>
 
@@ -82,9 +90,18 @@
                                 <option value="paid">Lunas</option>
                             </select>
                         </label>
+                        <label>
+                            <span>Lokasi Belajar</span>
+                            <select id="filter-location">
+                                <option value="">Semua</option>
+                                <option value="Bandung">Bandung</option>
+                                <option value="Jaksel">Jaksel</option>
+                                <option value="Jaktim">Jaktim</option>
+                            </select>
+                        </label>
                     </div>
                     <div class="search-box">
-                        <input type="search" id="search-input" placeholder="Cari nama, sekolah, atau program...">
+                        <input type="search" id="search-input" placeholder="Cari nama, sekolah, program, atau nomor...">
                     </div>
                 </div>
 
@@ -97,13 +114,17 @@
                                 <th>Program</th>
                                 <th>Status Siswa</th>
                                 <th>Status Pembayaran</th>
+                                <th>Lokasi</th>
+                                <th>No. Registrasi</th>
+                                <th>No. Invoice</th>
                                 <th>Pembayaran</th>
                                 <th>Dibuat</th>
+                                <th>Invoice</th>
                             </tr>
                         </thead>
                         <tbody id="registration-table">
                             <tr>
-                                <td colspan="7" class="empty-state">Memuat data pendaftar...</td>
+                                <td colspan="11" class="empty-state">Memuat data pendaftar...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -137,4 +158,3 @@
     <script src="<?= htmlspecialchars(asset('assets/js/dashboard.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
 </body>
 </html>
-

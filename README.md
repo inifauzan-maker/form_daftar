@@ -33,6 +33,7 @@ Formulir pendaftaran bimbingan belajar berbasis PHP (mini MVC) dengan integrasi 
 - **Nomor HP** divalidasi agar diawali `62` dengan 11-15 digit.
 - Submisi form dikirim sebagai JSON ke `/api/registrations` dan disimpan di tabel `registrations` dengan status awal `student_status=pending` dan `payment_status=unpaid`.
 - **Dashboard Admin** tersedia di `/dashboard` untuk memantau data pendaftar, memperbarui status siswa, serta proses pembayaran melalui endpoint `GET /api/registrations` dan `POST /api/registrations/status`.
+- Dari dashboard, admin dapat mengekspor CSV (`/dashboard/export`) atau mengunduh invoice PDF per pendaftar (`/dashboard/invoice?id=ID`).
 
 ## Catatan Pengembangan
 - Untuk menjalankan dalam mode debug, set `APP_DEBUG=true` di `.env`.

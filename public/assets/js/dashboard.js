@@ -2,7 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const BASE_PATH = window.APP_BASE_PATH || '';
     const withBase = (path) => `${BASE_PATH}${path}`;
 
+    const currencyFormatter = new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0,
+    });
+
     const tableBody = document.getElementById('registration-table');
+    const filterLocation = document.getElementById('filter-location');
     const filterStudent = document.getElementById('filter-student');
     const filterPayment = document.getElementById('filter-payment');
     const searchInput = document.getElementById('search-input');
@@ -12,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statActive = document.getElementById('stat-active');
     const statPaid = document.getElementById('stat-paid');
     const statUnpaid = document.getElementById('stat-unpaid');
+    const statProgramName = document.getElementById('stat-program-name');
+    const statProgramCount = document.getElementById('stat-program-count');
 
     const drawer = document.getElementById('drawer');
     const drawerBody = document.getElementById('drawer-body');
@@ -26,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshButton.addEventListener('click', () => loadRegistrations(true));
     filterStudent.addEventListener('change', applyFilters);
     filterPayment.addEventListener('change', applyFilters);
+    filterLocation.addEventListener('change', applyFilters);
     searchInput.addEventListener('input', applyFilters);
     drawerClose.addEventListener('click', closeDrawer);
     drawerCancel.addEventListener('click', closeDrawer);
@@ -67,23 +77,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyFilters() {
         const student = filterStudent.value;
         const payment = filterPayment.value;
+        const location = filterLocation.value;
         const keyword = searchInput.value.trim().toLowerCase();
 
         const filtered = registrations.filter((item) => {
             const matchesStudent = student ? item.student_status === student : true;
             const matchesPayment = payment ? item.payment_status === payment : true;
+            const matchesLocation = location ? item.study_location === location : true;
             const haystack = [
                 item.full_name,
                 item.school_name,
                 item.program_name,
                 item.program_code,
                 item.phone_number,
+                item.study_location,
+                item.registration_number,
+                item.invoice_number
             ]
                 .join(' ')
                 .toLowerCase();
             const matchesSearch = keyword ? haystack.includes(keyword) : true;
 
-            return matchesStudent && matchesPayment && matchesSearch;
+            return matchesStudent && matchesPayment && matchesLocation && matchesSearch;
         });
 
         renderTable(filtered);
@@ -127,14 +142,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="badge badge-payment-${item.payment_status}">${paymentLabel(item.payment_status)}</span>
                 </td>
                 <td>
+                    <span>${escapeHtml(item.study_location ?? '-')}</span>
+                </td>
+                <td>
+                    <span>${escapeHtml(item.registration_number ?? '-')}</span>
+                </td>
+                <td>
+                    <span>${escapeHtml(item.invoice_number ?? '-')}</span>
+                </td>
+                <td>
                     <span>${escapeHtml(item.payment_notes ?? '-')}</span>
                 </td>
                 <td>
                     <span>${formatDate(item.created_at)}</span>
                 </td>
+                <td>
+                    <a href="${withBase(`/dashboard/invoice?id=${item.id}`)}" class="btn-link invoice-link" target="_blank" rel="noopener">Unduh</a>
+                </td>
             `;
             tr.classList.add('clickable-row');
             tr.addEventListener('click', () => openDrawer(item));
+            const invoiceLink = tr.querySelector('.invoice-link');
+            if (invoiceLink) {
+                invoiceLink.addEventListener('click', (event) => event.stopPropagation());
+            }
             fragment.appendChild(tr);
         });
 
@@ -144,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderEmptyState(message) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="7" class="empty-state">${escapeHtml(message)}</td>
+                <td colspan="11" class="empty-state">${escapeHtml(message)}</td>
             </tr>
         `;
     }
@@ -199,24 +230,90 @@ document.addEventListener('DOMContentLoaded', () => {
                             )
                             .join('')}
                     </select>
-                </label>
-            </div>
+            </label>
+        </div>
 
-            <div class="drawer-section">
-                <h3>Status Pembayaran</h3>
+        <div class="drawer-section">
+            <h3>Lokasi & Registrasi</h3>
+            <div class="form-grid form-grid--payment">
                 <label class="input-field">
-                    <span>Pilih status pembayaran</span>
-                    <select id="payment-status-input">
-                        ${paymentStatusOptions()
+                    <span>Lokasi Belajar</span>
+                    <select id="study-location-input">
+                        ${['Bandung', 'Jaksel', 'Jaktim']
                             .map(
                                 (value) =>
                                     `<option value="${value}" ${
-                                        registration.payment_status === value ? 'selected' : ''
-                                    }>${paymentLabel(value)}</option>`
+                                        registration.study_location === value ? 'selected' : ''
+                                    }>${value}</option>`
                             )
                             .join('')}
                     </select>
                 </label>
+                <label class="input-field">
+                    <span>Nomor Registrasi</span>
+                    <input type="text" id="registration-number-input" value="${escapeHtml(registration.registration_number ?? '')}" placeholder="Akan dibuat saat simpan" readonly data-initial-value="${escapeHtml(registration.registration_number ?? '')}">
+                </label>
+                <label class="input-field">
+                    <span>Nomor Invoice</span>
+                    <input type="text" id="invoice-number-input" value="${escapeHtml(registration.invoice_number ?? '')}" placeholder="Akan dibuat saat simpan" readonly data-initial-value="${escapeHtml(registration.invoice_number ?? '')}">
+                </label>
+            </div>
+        </div>
+
+        <div class="drawer-section">
+            <h3>Form Pembayaran</h3>
+            <div class="form-grid form-grid--payment">
+                    ${renderCurrencyField('program-fee-input', 'Biaya Program (Rp)', registration.program_fee)}
+                    ${renderCurrencyField('registration-fee-input', 'Biaya Registrasi (Rp)', registration.registration_fee)}
+                    ${renderCurrencyField('discount-amount-input', 'Diskon (Rp)', registration.discount_amount)}
+                    ${renderCurrencyField('total-due-input', 'Total Tagihan (Rp)', registration.total_due, true)}
+                    ${renderCurrencyField('amount-paid-input', 'Jumlah Dibayar (Rp)', registration.amount_paid)}
+                    ${renderCurrencyField('balance-due-input', 'Sisa Tagihan (Rp)', registration.balance_due, true)}
+                    <label class="input-field">
+                        <span>Tanggal Pembayaran Terakhir</span>
+                        <input type="date" id="last-payment-input" value="${registration.last_payment_at ?? ''}">
+                    </label>
+                    <label class="input-field">
+                        <span>Status Pembayaran</span>
+                        <select id="payment-status-input">
+                            ${paymentStatusOptions()
+                                .map(
+                                    (value) =>
+                                        `<option value="${value}" ${
+                                            registration.payment_status === value ? 'selected' : ''
+                                        }>${paymentLabel(value)}</option>`
+                                )
+                                .join('')}
+                        </select>
+                    </label>
+                </div>
+                <div class="payment-summary" id="payment-summary">
+                    <h4>Ringkasan Pembayaran</h4>
+                    <div class="payment-summary__grid">
+                        <div>
+                            <span>Total Tagihan</span>
+                            <strong data-summary="total_due">${formatCurrency(registration.total_due)}</strong>
+                        </div>
+                        <div>
+                            <span>Total Dibayar</span>
+                            <strong data-summary="amount_paid">${formatCurrency(registration.amount_paid)}</strong>
+                        </div>
+                        <div>
+                            <span>Sisa Tagihan</span>
+                            <strong data-summary="balance_due">${formatCurrency(registration.balance_due)}</strong>
+                        </div>
+                    </div>
+                    <div class="payment-summary__meta">
+                        <div>
+                            <span>Status</span>
+                            <strong data-summary="payment_status">${paymentLabel(registration.payment_status)}</strong>
+                        </div>
+                        <div>
+                            <span>Pembayaran Terakhir</span>
+                            <strong data-summary="last_payment">${registration.last_payment_at ? formatDateShort(registration.last_payment_at) : '-'}</strong>
+                        </div>
+                    </div>
+                </div>
                 <label class="input-field">
                     <span>Catatan Pembayaran</span>
                     <textarea id="payment-notes-input" rows="3" placeholder="Masukkan catatan pembayaran (opsional)">${escapeHtml(
@@ -228,6 +325,102 @@ document.addEventListener('DOMContentLoaded', () => {
 
         drawer.setAttribute('aria-hidden', 'false');
         drawer.classList.add('is-open');
+        setupDrawerForm(registration);
+    }
+
+    function renderCurrencyField(id, label, value, readOnly = false) {
+        return `
+            <label class="input-field">
+                <span>${label}</span>
+                <div class="input-group">
+                    <span class="input-group__prefix">Rp</span>
+                    <input type="number" id="${id}" min="0" step="1000" value="${formatNumberInput(value)}" ${readOnly ? 'readonly' : ''}>
+                </div>
+            </label>
+        `;
+    }
+
+    function setupDrawerForm(registration) {
+        const locationSelect = document.getElementById('study-location-input');
+        const registrationNumberInput = document.getElementById('registration-number-input');
+        const invoiceNumberInput = document.getElementById('invoice-number-input');
+        const initialLocation = locationSelect ? locationSelect.value : '';
+        const initialRegistrationNumber = registrationNumberInput ? registrationNumberInput.value : '';
+        const initialInvoiceNumber = invoiceNumberInput ? invoiceNumberInput.value : '';
+
+        const programInput = document.getElementById('program-fee-input');
+        const registrationFeeInput = document.getElementById('registration-fee-input');
+        const discountInput = document.getElementById('discount-amount-input');
+        const totalDueInput = document.getElementById('total-due-input');
+        const amountPaidInput = document.getElementById('amount-paid-input');
+        const balanceDueInput = document.getElementById('balance-due-input');
+        const lastPaymentInput = document.getElementById('last-payment-input');
+        const paymentStatusInput = document.getElementById('payment-status-input');
+        const summary = document.getElementById('payment-summary');
+        const summaryRefs = {
+            total_due: summary.querySelector('[data-summary="total_due"]'),
+            amount_paid: summary.querySelector('[data-summary="amount_paid"]'),
+            balance_due: summary.querySelector('[data-summary="balance_due"]'),
+            payment_status: summary.querySelector('[data-summary="payment_status"]'),
+            last_payment: summary.querySelector('[data-summary="last_payment"]'),
+        };
+
+        const recalc = () => {
+            const program = parseMoney(programInput.value);
+            const regFee = parseMoney(registrationFeeInput.value);
+            const discount = parseMoney(discountInput.value);
+            const paid = parseMoney(amountPaidInput.value);
+            const total = Math.max(0, program + regFee - discount);
+            const balance = Math.max(0, total - paid);
+
+            totalDueInput.value = formatNumberInput(total);
+            balanceDueInput.value = formatNumberInput(balance);
+
+            summaryRefs.total_due.textContent = formatCurrency(total);
+            summaryRefs.amount_paid.textContent = formatCurrency(paid);
+            summaryRefs.balance_due.textContent = formatCurrency(balance);
+        };
+
+        const updateStatusSummary = () => {
+            summaryRefs.payment_status.textContent = paymentLabel(paymentStatusInput.value);
+        };
+
+        const updateLastPaymentSummary = () => {
+            summaryRefs.last_payment.textContent = lastPaymentInput.value
+                ? formatDateShort(lastPaymentInput.value)
+                : '-';
+        };
+
+        if (locationSelect) {
+            locationSelect.addEventListener('change', () => {
+                if (locationSelect.value !== initialLocation) {
+                    if (registrationNumberInput) {
+                        registrationNumberInput.value = '';
+                    }
+                    if (invoiceNumberInput) {
+                        invoiceNumberInput.value = '';
+                    }
+                } else {
+                    if (registrationNumberInput) {
+                        registrationNumberInput.value = initialRegistrationNumber;
+                    }
+                    if (invoiceNumberInput) {
+                        invoiceNumberInput.value = initialInvoiceNumber;
+                    }
+                }
+            });
+        }
+
+        [programInput, registrationFeeInput, discountInput, amountPaidInput].forEach((input) => {
+            input.addEventListener('input', recalc);
+        });
+
+        paymentStatusInput.addEventListener('change', updateStatusSummary);
+        lastPaymentInput.addEventListener('change', updateLastPaymentSummary);
+
+        recalc();
+        updateStatusSummary();
+        updateLastPaymentSummary();
     }
 
     function closeDrawer() {
@@ -244,6 +437,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const studentStatus = document.getElementById('student-status-input').value;
         const paymentStatus = document.getElementById('payment-status-input').value;
         const paymentNotes = document.getElementById('payment-notes-input').value.trim();
+        const studyLocation = document.getElementById('study-location-input').value;
+        const registrationNumber = document.getElementById('registration-number-input').value.trim();
+        const invoiceNumber = document.getElementById('invoice-number-input').value.trim();
+        const programFee = parseMoney(document.getElementById('program-fee-input').value);
+        const registrationFee = parseMoney(document.getElementById('registration-fee-input').value);
+        const discountAmount = parseMoney(document.getElementById('discount-amount-input').value);
+        const totalDue = parseMoney(document.getElementById('total-due-input').value);
+        const amountPaid = parseMoney(document.getElementById('amount-paid-input').value);
+        const balanceDue = parseMoney(document.getElementById('balance-due-input').value);
+        const lastPaymentAt = document.getElementById('last-payment-input').value;
 
         drawerSave.disabled = true;
         drawerSave.textContent = 'Menyimpan...';
@@ -258,6 +461,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 student_status: studentStatus,
                 payment_status: paymentStatus,
                 payment_notes: paymentNotes,
+                study_location: studyLocation,
+                registration_number: registrationNumber,
+                invoice_number: invoiceNumber,
+                program_fee: programFee,
+                registration_fee: registrationFee,
+                discount_amount: discountAmount,
+                total_due: totalDue,
+                amount_paid: amountPaid,
+                balance_due: balanceDue,
+                last_payment_at: lastPaymentAt,
             }),
         })
             .then(async (response) => {
@@ -289,11 +502,57 @@ document.addEventListener('DOMContentLoaded', () => {
         const active = registrations.filter((item) => item.student_status === 'active').length;
         const paid = registrations.filter((item) => item.payment_status === 'paid').length;
         const unpaid = registrations.filter((item) => item.payment_status === 'unpaid').length;
+        const programCounts = registrations.reduce((acc, item) => {
+            const key = item.program_name || 'Tidak diketahui';
+            acc[key] = (acc[key] || 0) + 1;
+            return acc;
+        }, {});
+        let topProgramName = '-';
+        let topProgramCount = 0;
+        Object.entries(programCounts).forEach(([name, count]) => {
+            if (count > topProgramCount) {
+                topProgramName = name;
+                topProgramCount = count;
+            }
+        });
 
         statTotal.textContent = total;
         statActive.textContent = active;
         statPaid.textContent = paid;
         statUnpaid.textContent = unpaid;
+        if (statProgramName) {
+            statProgramName.textContent = topProgramName;
+        }
+        if (statProgramCount) {
+            statProgramCount.textContent = `${topProgramCount} pendaftar`;
+        }
+    }
+
+    function parseMoney(value) {
+        return Number.parseFloat(value) || 0;
+    }
+
+    function formatNumberInput(value) {
+        return (Number.parseFloat(value) || 0).toFixed(0);
+    }
+
+    function formatCurrency(value) {
+        return currencyFormatter.format(Number.parseFloat(value) || 0);
+    }
+
+    function formatDateShort(value) {
+        if (!value) {
+            return '-';
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+
+        return new Intl.DateTimeFormat('id-ID', {
+            dateStyle: 'medium',
+        }).format(date);
     }
 
     function formatDate(value) {
@@ -384,4 +643,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3500);
     }
 });
+
+
 

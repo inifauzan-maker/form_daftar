@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const schoolIdInput = document.getElementById('school-id');
     const schoolNameInput = document.getElementById('school-name');
     const classSelect = document.getElementById('class-level');
+    const studyLocationSelect = document.getElementById('study-location');
     const programSelect = document.getElementById('program');
     const phoneInput = document.getElementById('phone-number');
     const provinceSelect = document.getElementById('province');
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         full_name: document.querySelector('[data-summary="full_name"]'),
         school_name: document.querySelector('[data-summary="school_name"]'),
         class_level: document.querySelector('[data-summary="class_level"]'),
+        study_location: document.querySelector('[data-summary="study_location"]'),
         phone_number: document.querySelector('[data-summary="phone_number"]'),
         address: document.querySelector('[data-summary="address"]'),
         program: document.querySelector('[data-summary="program"]'),
@@ -114,6 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         refreshUi();
     });
+
+    studyLocationSelect.addEventListener('change', refreshUi);
 
     function loadPrograms(classLevel) {
         programSelect.disabled = true;
@@ -331,6 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
             school_id: schoolIdInput.value,
             school_name: schoolNameInput.value.trim(),
             class_level: classSelect.value,
+            study_location: studyLocationSelect.value,
             phone_number: phoneInput.value.trim(),
             province: provinceSelect.selectedOptions[0]?.textContent ?? '',
             city: citySelect.selectedOptions[0]?.textContent ?? '',
@@ -361,6 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tomSelect.clear();
                 resetPrograms();
                 updateClassLevels(null);
+                studyLocationSelect.value = '';
                 postalCodeInput.value = '';
                 fillSelect(citySelect, [], 'Pilih provinsi terlebih dahulu');
                 fillSelect(districtSelect, [], 'Pilih kota/kabupaten terlebih dahulu');
@@ -398,6 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setSummary('full_name', form.full_name.value.trim());
         setSummary('school_name', schoolNameInput.value.trim());
         setSummary('class_level', classSelect.value);
+        setSummary('study_location', getSelectedText(studyLocationSelect));
         setSummary('phone_number', formatPhone(phoneInput.value.trim()));
         setSummary('program', getSelectedText(programSelect));
 
@@ -454,6 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     form.full_name.value.trim().length >= 3 &&
                     schoolNameInput.value.trim() !== '' &&
                     classSelect.value !== '' &&
+                    studyLocationSelect.value !== '' &&
                     /^62\d{9,13}$/.test(phoneInput.value.trim())
                 );
             case 'address':

@@ -247,6 +247,45 @@ body {
     gap: 1.25rem 1.5rem;
 }
 
+.form-grid--payment {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.55);
+    background: rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+}
+
+.input-group input {
+    border: none;
+    flex: 1;
+    padding: 0.75rem 0.9rem;
+    font-size: 1rem;
+    background: transparent;
+}
+
+.input-group input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.input-group input[readonly] {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--text-muted);
+}
+
+.input-group__prefix {
+    padding: 0.75rem 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-right: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(148, 163, 184, 0.12);
+}
+
 .input-field {
     display: flex;
     flex-direction: column;
@@ -610,6 +649,21 @@ body.dashboard {
     background: rgba(148, 163, 184, 0.12);
 }
 
+.btn-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 600;
+    color: #1d4ed8;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.btn-link:hover {
+    color: #0f172a;
+    text-decoration: underline;
+}
+
 .stats-grid {
     display: grid;
     gap: 1.25rem;
@@ -637,6 +691,11 @@ body.dashboard {
 .stats-card strong {
     font-size: 2rem;
     color: var(--text);
+}
+
+.stats-card .stats-sub {
+    font-size: 0.9rem;
+    color: var(--text-muted);
 }
 
 .table-card {
@@ -892,6 +951,55 @@ tbody td {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
+}
+
+.payment-summary {
+    margin-top: 1.5rem;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 18px;
+    padding: 1.25rem;
+    background: #f8fafc;
+    display: grid;
+    gap: 1rem;
+}
+
+.payment-summary h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text);
+}
+
+.payment-summary__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.payment-summary__grid div,
+.payment-summary__meta div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.payment-summary__grid span,
+.payment-summary__meta span {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.payment-summary__grid strong,
+.payment-summary__meta strong {
+    font-size: 1.1rem;
+    color: var(--text);
+}
+
+.payment-summary__meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
 }
 
 /* Toast */

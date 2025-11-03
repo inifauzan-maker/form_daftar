@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
+use DateTimeImmutable;
+use DateTimeZone;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\School;
@@ -64,6 +66,10 @@ class RegistrationController extends Controller
                 $this->response->json(['errors' => ['class_level' => ['Jenjang kelas tidak sesuai dengan asal sekolah.']]], 422);
                 return;
             }
+
+            // Sekolah yang dipilih berasal dari dataset JSON, bukan tabel `schools`.
+            // Hindari foreign key violation dengan tidak menyimpan `school_id`.
+            $schoolId = null;
         }
 
         if (!$this->classMatchesProgramCategory($payload['class_level'], $program['class_category'])) {
@@ -87,7 +93,23 @@ class RegistrationController extends Controller
             'student_status' => $this->normalizeStudentStatus($payload['student_status'] ?? null),
             'payment_status' => $this->normalizePaymentStatus($payload['payment_status'] ?? null),
             'payment_notes' => $payload['payment_notes'] ?? null,
+            'program_fee' => $this->toDecimal($payload['program_fee'] ?? 0),
+            'registration_fee' => $this->toDecimal($payload['registration_fee'] ?? 0),
+            'discount_amount' => $this->toDecimal($payload['discount_amount'] ?? 0),
+            'total_due' => $this->toDecimal($payload['total_due'] ?? 0),
+            'amount_paid' => $this->toDecimal($payload['amount_paid'] ?? 0),
+            'balance_due' => $this->toDecimal($payload['balance_due'] ?? 0),
+            'last_payment_at' => $payload['last_payment_at'] ?? null,
+            'study_location' => $this->normalizeLocation($payload['study_location'] ?? null),
         ];
+        if (!$data['study_location']) {
+            $this->response->json(['errors' => ['study_location' => ['Lokasi belajar wajib dipilih.']]], 422);
+            return;
+        }
+
+        [$registrationNumber, $invoiceNumber] = $this->generateRegistrationNumbers($data['study_location']);
+        $data['registration_number'] = $registrationNumber;
+        $data['invoice_number'] = $invoiceNumber;
 
         try {
             $id = $this->registrations->create($data);
@@ -97,6 +119,7 @@ class RegistrationController extends Controller
                 'id' => $id,
             ]);
         } catch (\PDOException $exception) {
+            error_log('[registration.store] ' . $exception->getMessage());
             $this->response->json([
                 'errors' => [
                     'server' => ['Terjadi kesalahan saat menyimpan data. Pastikan struktur tabel telah diperbarui.'],
@@ -135,6 +158,10 @@ class RegistrationController extends Controller
 
         if (empty($payload['program_id'])) {
             $errors['program_id'][] = 'Program bimbel wajib dipilih.';
+        }
+
+        if (empty($payload['study_location']) || !$this->normalizeLocation($payload['study_location'])) {
+            $errors['study_location'][] = 'Lokasi belajar wajib dipilih.';
         }
 
         if (isset($payload['student_status']) && !in_array($payload['student_status'], $this->studentStatusOptions(), true)) {
@@ -187,6 +214,15 @@ class RegistrationController extends Controller
         return ['unpaid', 'partial', 'paid'];
     }
 
+    private function locationCodes(): array
+    {
+        return [
+            'Bandung' => '11',
+            'Jaksel' => '21',
+            'Jaktim' => '31',
+        ];
+    }
+
     private function normalizeStudentStatus(?string $value): string
     {
         return in_array($value, $this->studentStatusOptions(), true) ? $value : 'pending';
@@ -195,5 +231,40 @@ class RegistrationController extends Controller
     private function normalizePaymentStatus(?string $value): string
     {
         return in_array($value, $this->paymentStatusOptions(), true) ? $value : 'unpaid';
+    }
+
+    private function normalizeLocation(?string $value): ?string
+    {
+        $valid = array_keys($this->locationCodes());
+        return in_array($value, $valid, true) ? $value : null;
+    }
+
+    private function toDecimal(mixed $value): string
+    {
+        return number_format((float) $value, 2, '.', '');
+    }
+
+    private function generateRegistrationNumbers(string $location): array
+    {
+        $codes = $this->locationCodes();
+        $code = $codes[$location] ?? '00';
+        $yearSegment = $this->academicYearSegment();
+        $sequence = $this->registrations->nextSequence($yearSegment, $code);
+        $registrationNumber = sprintf('%s-%s%03d', $yearSegment, $code, $sequence);
+
+        return [$registrationNumber, $registrationNumber];
+    }
+
+    private function academicYearSegment(): string
+    {
+        $timezone = config('app.timezone') ?? 'Asia/Jakarta';
+        $now = new DateTimeImmutable('now', new DateTimeZone($timezone));
+        $year = (int) $now->format('Y');
+        $month = (int) $now->format('n');
+
+        $startYear = $month >= 7 ? $year : $year - 1;
+        $endYear = $startYear + 1;
+
+        return sprintf('%02d%02d', $startYear % 100, $endYear % 100);
     }
 }
