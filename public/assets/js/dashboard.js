@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const drawerClose = document.getElementById('drawer-close');
     const drawerSave = document.getElementById('drawer-save');
     const drawerCancel = document.getElementById('drawer-cancel');
+    let drawerLastTrigger = null;
 
     let registrations = [];
     let selectedRegistration = null;
@@ -181,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openDrawer(registration) {
+        drawerLastTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         selectedRegistration = registration;
         drawerTitle.textContent = registration.full_name;
         drawerBody.innerHTML = `
@@ -326,6 +328,9 @@ document.addEventListener('DOMContentLoaded', () => {
         drawer.setAttribute('aria-hidden', 'false');
         drawer.classList.add('is-open');
         setupDrawerForm(registration);
+        if (drawerClose) {
+            drawerClose.focus();
+        }
     }
 
     function renderCurrencyField(id, label, value, readOnly = false) {
@@ -424,9 +429,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeDrawer() {
+        if (drawer.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
         drawer.classList.remove('is-open');
         drawer.setAttribute('aria-hidden', 'true');
         selectedRegistration = null;
+        if (drawerLastTrigger && typeof drawerLastTrigger.focus === 'function') {
+            drawerLastTrigger.focus();
+        }
+        drawerLastTrigger = null;
     }
 
     function handleSaveStatus() {

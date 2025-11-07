@@ -38,6 +38,15 @@ if (file_exists(__DIR__ . '/../.env')) {
     }
 }
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    $isSecure = isset($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+    session_start([
+        'cookie_httponly' => true,
+        'cookie_secure' => $isSecure,
+        'cookie_samesite' => 'Lax',
+    ]);
+}
+
 date_default_timezone_set((string) config('app.timezone'));
 
 $request = new Request();

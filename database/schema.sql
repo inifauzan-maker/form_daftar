@@ -19,9 +19,16 @@ CREATE TABLE IF NOT EXISTS `programs` (
   `name` VARCHAR(150) NOT NULL,
   `code` VARCHAR(20) NOT NULL,
   `class_category` ENUM('SD_SMP','X_XI','XII') NOT NULL,
+  `registration_fee` DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  `tuition_fee` DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  `target_students` INT UNSIGNED NOT NULL DEFAULT 0,
+  `target_revenue` DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+  `description` TEXT NULL,
+  `image_path` VARCHAR(255) NULL,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `programs_class_category_index` (`class_category`)
+  KEY `programs_class_category_index` (`class_category`),
+  UNIQUE KEY `programs_name_code_unique` (`name`,`code`,`class_category`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `registrations` (
@@ -61,6 +68,70 @@ CREATE TABLE IF NOT EXISTS `registrations` (
   UNIQUE KEY `registrations_invoice_number_unique` (`invoice_number`),
   CONSTRAINT `registrations_school_id_foreign` FOREIGN KEY (`school_id`) REFERENCES `schools` (`id`) ON DELETE SET NULL,
   CONSTRAINT `registrations_program_id_foreign` FOREIGN KEY (`program_id`) REFERENCES `programs` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(150) NOT NULL,
+  `email` VARCHAR(150) NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `status` ENUM('active','inactive') NOT NULL DEFAULT 'active',
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `users_email_unique` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `roles` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(120) NOT NULL,
+  `slug` VARCHAR(120) NOT NULL,
+  `description` VARCHAR(255) NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `roles_slug_unique` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `permissions` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(150) NOT NULL,
+  `slug` VARCHAR(150) NOT NULL,
+  `description` VARCHAR(255) NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `permissions_slug_unique` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `role_user` (
+  `role_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`role_id`, `user_id`),
+  KEY `role_user_user_id_index` (`user_id`),
+  CONSTRAINT `role_user_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `role_user_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `permission_role` (
+  `permission_id` BIGINT UNSIGNED NOT NULL,
+  `role_id` BIGINT UNSIGNED NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`permission_id`, `role_id`),
+  KEY `permission_role_role_id_index` (`role_id`),
+  CONSTRAINT `permission_role_permission_id_foreign` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `permission_role_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `permission_user` (
+  `permission_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`permission_id`, `user_id`),
+  KEY `permission_user_user_id_index` (`user_id`),
+  CONSTRAINT `permission_user_permission_id_foreign` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `permission_user_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `schools` (`name`, `type`, `city`, `province`, `level_group`) VALUES
@@ -123,3 +194,53 @@ INSERT INTO `programs` (`name`, `code`, `class_category`) VALUES
   ('Gold 1211204', '1211204', 'XII'),
   ('Minsen', '1221007', 'X_XI'),
   ('Minat Seni', '1220907', 'SD_SMP');
+
+INSERT INTO `roles` (`name`, `slug`, `description`) VALUES
+  ('Administrator', 'admin', 'Akses penuh ke seluruh fitur dan konfigurasi.'),
+  ('Staff', 'staff', 'Mengelola data pendaftar serta status pembayaran.'),
+  ('Viewer', 'viewer', 'Melihat dashboard dan data ringkasan.')
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `description` = VALUES(`description`);
+
+INSERT INTO `permissions` (`name`, `slug`, `description`) VALUES
+  ('Melihat dashboard pendaftar', 'view_dashboard', 'Mengakses halaman dashboard dan melihat data pendaftar.'),
+  ('Memperbarui status pendaftar', 'update_registration_status', 'Mengubah status siswa dan pembayaran.'),
+  ('Mengunduh data pendaftar', 'export_registrations', 'Menjalankan ekspor data pendaftar ke CSV.'),
+  ('Melihat invoice pendaftar', 'view_invoice', 'Menerbitkan dan melihat dokumen invoice.'),
+  ('Mengelola pengguna', 'manage_users', 'Membuat, memperbarui, dan menghapus akun pengguna.'),
+  ('Mengelola peran', 'manage_roles', 'Membuat, memperbarui, dan menghapus peran beserta hak aksesnya.'),
+  ('Mengelola izin', 'manage_permissions', 'Membuat, memperbarui, dan menghapus daftar izin.')
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `description` = VALUES(`description`);
+
+INSERT INTO `users` (`name`, `email`, `password`, `status`) VALUES
+  ('Administrator', 'admin@si-vmi.local', '$2y$12$s92Nae1oSMEJJh/an0Yd4eKmA/iDcI.qYByuQdiPbBSFIKhqnIbRW', 'active')
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `password` = VALUES(`password`),
+  `status` = VALUES(`status`);
+
+INSERT IGNORE INTO `role_user` (`role_id`, `user_id`)
+SELECT r.id, u.id
+FROM roles r
+JOIN users u ON u.email = 'admin@si-vmi.local'
+WHERE r.slug = 'admin';
+
+INSERT IGNORE INTO `permission_role` (`permission_id`, `role_id`)
+SELECT p.id, r.id
+FROM permissions p
+JOIN roles r ON r.slug = 'admin';
+
+INSERT IGNORE INTO `permission_role` (`permission_id`, `role_id`)
+SELECT p.id, r.id
+FROM permissions p
+JOIN roles r ON r.slug = 'staff'
+WHERE p.slug IN ('view_dashboard', 'update_registration_status', 'export_registrations', 'view_invoice');
+
+INSERT IGNORE INTO `permission_role` (`permission_id`, `role_id`)
+SELECT p.id, r.id
+FROM permissions p
+JOIN roles r ON r.slug = 'viewer'
+WHERE p.slug IN ('view_dashboard', 'view_invoice');

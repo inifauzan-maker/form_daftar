@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
+use App\Core\Auth;
 use App\Models\Registration;
 
 class InvoiceController extends Controller
@@ -14,6 +15,7 @@ class InvoiceController extends Controller
     public function __construct(Request $request, Response $response)
     {
         parent::__construct($request, $response);
+        Auth::requirePermission($this->request, $this->response, 'view_invoice');
         $this->registrations = new Registration();
     }
 
@@ -176,4 +178,3 @@ class InvoiceController extends Controller
         return 'Rp ' . number_format((float) $value, 0, ',', '.');
     }
 }
-

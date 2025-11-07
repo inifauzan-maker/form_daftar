@@ -1,0 +1,145 @@
+
+openapi: 3.0.3
+info:
+  title: CRM Marketing API
+  version: "1.0.0"
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /auth/login:
+    post:
+      summary: Login (JWT/Sanctum)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "200":
+          description: Token
+  /users:
+    get:
+      summary: List users
+    post:
+      summary: Create user
+  /users/{id}:
+    get: { summary: Detail user }
+    patch: { summary: Update user }
+    delete: { summary: Delete user }
+  /roles:
+    get: { summary: List roles }
+    post: { summary: Create role }
+  /roles/{id}:
+    patch: { summary: Update role }
+    delete: { summary: Delete role }
+
+  /channels:
+    get: { summary: List channels }
+    post: { summary: Create channel }
+  /channels/{id}:
+    patch: { summary: Update channel }
+    delete: { summary: Delete channel }
+
+  /programs:
+    get: { summary: List programs }
+    post: { summary: Create program }
+  /programs/{id}:
+    get: { summary: Detail program }
+    patch: { summary: Update program }
+    delete: { summary: Delete program }
+
+  /leads:
+    get:
+      summary: List leads (filter/sort/pagination)
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: stage
+          schema: { type: string }
+        - in: query
+          name: channel_id
+          schema: { type: integer }
+        - in: query
+          name: owner_id
+          schema: { type: integer }
+        - in: query
+          name: q
+          schema: { type: string }
+    post: { summary: Create lead }
+  /leads/bulk-import:
+    post: { summary: Import leads via XLSX }
+  /leads/export:
+    get: { summary: Export leads to XLSX }
+  /leads/{id}:
+    get: { summary: Detail lead }
+    patch: { summary: Update lead }
+    delete: { summary: Delete lead }
+  /leads/{id}/activities:
+    get: { summary: List activities }
+    post: { summary: Add activity (follow-up) }
+  /leads/{id}/assign:
+    post: { summary: Assign owner/admin }
+  /leads/{id}/forecast:
+    get: { summary: Get forecast for the lead }
+
+  /kpi/targets:
+    get: { summary: List KPI targets }
+    post: { summary: Create KPI target }
+  /kpi/targets/{id}:
+    patch: { summary: Update KPI target }
+    delete: { summary: Delete KPI target }
+
+  /kpi/realizations:
+    get: { summary: List KPI realizations }
+    post: { summary: Create KPI realization }
+  /ads/performance:
+    get: { summary: List ads performance (date range, channel) }
+    post: { summary: Upsert daily performance }
+
+  /reports/funnel:
+    get: { summary: Funnel data (prospect→follow_up→closing) }
+  /reports/conversion-by-channel:
+    get: { summary: Conversion rate per channel }
+  /reports/targets-vs-real:
+    get: { summary: Target vs Real per bulan }
+  /reports/trend-6mo:
+    get: { summary: Tren 6 bulan terakhir untuk metrik pilihan }
+
+  /news:
+    get: { summary: List news }
+    post: { summary: Create news }
+  /news/{id}:
+    get: { summary: Detail news }
+    patch: { summary: Update news }
+    delete: { summary: Delete news }
+
+  /notifications:
+    get: { summary: List notifications (unread/read) }
+    post: { summary: Create notification (system) }
+  /notifications/{id}/read:
+    post: { summary: Mark as read }
+
+  /todos:
+    get: { summary: List todos }
+    post: { summary: Create todo }
+  /todos/{id}:
+    patch: { summary: Update todo }
+    delete: { summary: Delete todo }
+
+  /calendar/events:
+    get: { summary: List calendar events }
+    post: { summary: Create calendar event }
+  /calendar/events/{id}:
+    patch: { summary: Update calendar event }
+    delete: { summary: Delete calendar event }
+
+  /whatsapp/webhook:
+    post: { summary: Receive WhatsApp messages webhook }
+
+components: { }
