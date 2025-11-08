@@ -1,4 +1,4 @@
-# SI VMI Pendaftaran
+# Pendaftaran
 
 Formulir pendaftaran bimbingan belajar berbasis PHP (mini MVC) dengan integrasi Tom Select dan API alamat Indonesia.
 
