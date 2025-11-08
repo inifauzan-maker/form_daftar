@@ -24,10 +24,8 @@ Formulir pendaftaran bimbingan belajar berbasis PHP (mini MVC) dengan integrasi 
    ```
 3. Arahkan virtual host / document root ke folder `public/`.
 4. Buka `http://si-vmi.test` (atau host lokal Anda) untuk melihat form publik.
-5. Masuk ke panel admin melalui `http://si-vmi.test/login` menggunakan akun bawaan:
-   - Email: `admin@si-vmi.local`
-   - Kata sandi: `Admin123!`
-   Segera ubah kata sandi setelah login pertama melalui menu manajemen pengguna.
+5. Masuk ke panel admin melalui `http://si-vmi.test/login` menggunakan akun bawaan
+  
 
 ## Alur Fitur
 - **Asal Sekolah** memakai Tom Select dengan auto suggest berbasis AJAX (`/api/schools`). Dataset favorit Bandung & Jabodetabek tersimpan di tabel `schools`.
