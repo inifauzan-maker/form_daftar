@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Auth;
+use App\Core\ActivityLogger;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
@@ -52,6 +53,17 @@ class RoleController extends Controller
             ], 422);
             return;
         }
+
+        ActivityLogger::log(
+            $this->request,
+            'roles.create',
+            'Membuat peran baru.',
+            [
+                'role_id' => $roleId,
+                'slug' => $payload['slug'],
+                'permission_ids' => $payload['permissions'],
+            ]
+        );
 
         $this->response->json([
             'message' => 'Peran berhasil dibuat.',
@@ -103,6 +115,17 @@ class RoleController extends Controller
             return;
         }
 
+        ActivityLogger::log(
+            $this->request,
+            'roles.update',
+            'Memperbarui peran.',
+            [
+                'role_id' => (int) $payload['id'],
+                'slug' => $payload['slug'],
+                'permission_ids' => $payload['permissions'],
+            ]
+        );
+
         $this->response->json(['message' => 'Peran berhasil diperbarui.']);
     }
 
@@ -132,6 +155,16 @@ class RoleController extends Controller
         }
 
         $this->roles->delete($id);
+
+        ActivityLogger::log(
+            $this->request,
+            'roles.delete',
+            'Menghapus peran.',
+            [
+                'role_id' => $id,
+                'slug' => $role['slug'],
+            ]
+        );
 
         $this->response->json(['message' => 'Peran berhasil dihapus.']);
     }
@@ -205,4 +238,3 @@ class RoleController extends Controller
         return in_array($slug, ['admin'], true);
     }
 }
-

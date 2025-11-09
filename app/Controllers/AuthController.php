@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Auth;
+use App\Core\ActivityLogger;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
@@ -55,6 +56,19 @@ class AuthController extends Controller
             return;
         }
 
+        $authenticated = Auth::user();
+        $actorId = $authenticated['id'] ?? null;
+        ActivityLogger::log(
+            $this->request,
+            'auth.login',
+            'Berhasil masuk ke panel admin.',
+            [
+                'email' => $authenticated['email'] ?? $email,
+                'name' => $authenticated['name'] ?? null,
+            ],
+            $actorId ? (int) $actorId : null
+        );
+
         if ($this->request->isJson()) {
             $this->response->json([
                 'message' => 'Berhasil masuk.',
@@ -69,6 +83,20 @@ class AuthController extends Controller
 
     public function logout(): void
     {
+        $currentUser = Auth::user();
+        if ($currentUser) {
+            ActivityLogger::log(
+                $this->request,
+                'auth.logout',
+                'Keluar dari sesi.',
+                [
+                    'email' => $currentUser['email'] ?? null,
+                    'name' => $currentUser['name'] ?? null,
+                ],
+                (int) ($currentUser['id'] ?? 0) ?: null
+            );
+        }
+
         Auth::logout();
 
         if ($this->request->isJson()) {

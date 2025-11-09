@@ -134,6 +134,24 @@ CREATE TABLE IF NOT EXISTS `permission_user` (
   CONSTRAINT `permission_user_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NULL,
+  `action` VARCHAR(150) NOT NULL,
+  `description` TEXT NULL,
+  `metadata` JSON NULL,
+  `ip_address` VARCHAR(45) NULL,
+  `user_agent` VARCHAR(255) NULL,
+  `request_path` VARCHAR(255) NULL,
+  `request_method` VARCHAR(10) NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `activity_logs_user_id_index` (`user_id`),
+  KEY `activity_logs_action_index` (`action`),
+  KEY `activity_logs_created_at_index` (`created_at`),
+  CONSTRAINT `activity_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO `schools` (`name`, `type`, `city`, `province`, `level_group`) VALUES
   ('SMAN 2 Bandung', 'SMAN', 'Kota Bandung', 'Jawa Barat', 'SMA'),
   ('SMAN 3 Bandung', 'SMAN', 'Kota Bandung', 'Jawa Barat', 'SMA'),
@@ -210,7 +228,8 @@ INSERT INTO `permissions` (`name`, `slug`, `description`) VALUES
   ('Melihat invoice pendaftar', 'view_invoice', 'Menerbitkan dan melihat dokumen invoice.'),
   ('Mengelola pengguna', 'manage_users', 'Membuat, memperbarui, dan menghapus akun pengguna.'),
   ('Mengelola peran', 'manage_roles', 'Membuat, memperbarui, dan menghapus peran beserta hak aksesnya.'),
-  ('Mengelola izin', 'manage_permissions', 'Membuat, memperbarui, dan menghapus daftar izin.')
+  ('Mengelola izin', 'manage_permissions', 'Membuat, memperbarui, dan menghapus daftar izin.'),
+  ('Melihat log aktivitas', 'view_activity_logs', 'Mengakses riwayat aktivitas pengguna di panel admin.')
 ON DUPLICATE KEY UPDATE
   `name` = VALUES(`name`),
   `description` = VALUES(`description`);

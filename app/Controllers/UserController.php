@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Auth;
+use App\Core\ActivityLogger;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
@@ -64,6 +65,18 @@ class UserController extends Controller
             return;
         }
 
+        ActivityLogger::log(
+            $this->request,
+            'users.create',
+            'Membuat pengguna baru.',
+            [
+                'target_user_id' => $userId,
+                'target_email' => $payload['email'],
+                'status' => $payload['status'],
+                'role_ids' => $payload['roles'],
+            ]
+        );
+
         $this->response->json([
             'message' => 'Pengguna berhasil dibuat.',
             'id' => $userId,
@@ -109,6 +122,18 @@ class UserController extends Controller
 
         Auth::reload($userId);
 
+        ActivityLogger::log(
+            $this->request,
+            'users.update',
+            'Memperbarui data pengguna.',
+            [
+                'target_user_id' => $userId,
+                'target_email' => $payload['email'],
+                'status' => $payload['status'],
+                'role_ids' => $payload['roles'],
+            ]
+        );
+
         $this->response->json(['message' => 'Pengguna berhasil diperbarui.']);
     }
 
@@ -133,7 +158,18 @@ class UserController extends Controller
             return;
         }
 
+        $target = $this->users->find($id);
         $this->users->delete($id);
+
+        ActivityLogger::log(
+            $this->request,
+            'users.delete',
+            'Menghapus pengguna.',
+            [
+                'target_user_id' => $id,
+                'target_email' => $target['email'] ?? null,
+            ]
+        );
 
         $this->response->json(['message' => 'Pengguna berhasil dihapus.']);
     }
@@ -203,4 +239,3 @@ class UserController extends Controller
         return ['general' => ['Terjadi kesalahan saat menyimpan pengguna.']];
     }
 }
-

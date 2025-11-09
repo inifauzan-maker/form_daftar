@@ -2,10 +2,11 @@
 
 namespace App\Controllers;
 
+use App\Core\ActivityLogger;
+use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
-use App\Core\Auth;
 use App\Models\Registration;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -431,6 +432,16 @@ class DashboardController extends Controller
         $records = $this->registrations->all();
         $filename = 'registrations-' . date('Ymd-His') . '.csv';
 
+        ActivityLogger::log(
+            $this->request,
+            'registrations.export',
+            'Mengunduh data pendaftar.',
+            [
+                'total_rows' => count($records),
+                'filename' => $filename,
+            ]
+        );
+
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
 
@@ -592,6 +603,20 @@ class DashboardController extends Controller
             'registration_number' => $registrationNumber,
             'invoice_number' => $invoiceNumber,
         ]);
+
+        ActivityLogger::log(
+            $this->request,
+            'registrations.status_update',
+            'Memperbarui status registrasi.',
+            [
+                'registration_id' => $id,
+                'student_status' => $studentStatus,
+                'payment_status' => $paymentStatus,
+                'study_location' => $studyLocation,
+                'registration_number' => $registrationNumber,
+                'invoice_number' => $invoiceNumber,
+            ]
+        );
 
         $this->response->json([
             'message' => 'Status pendaftaran berhasil diperbarui.',

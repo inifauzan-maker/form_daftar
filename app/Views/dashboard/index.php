@@ -22,6 +22,7 @@ $canManageUsers = Auth::can('manage_users');
 $canExport = Auth::can('export_registrations');
 $canUpdateStatus = Auth::can('update_registration_status');
 $canViewInvoice = Auth::can('view_invoice');
+$canViewActivityLogs = Auth::can('view_activity_logs');
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -33,7 +34,7 @@ $canViewInvoice = Auth::can('view_invoice');
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-JsJn0xA4wNG0Ax7Anxr1j403rwhhtjfiPgk41IrT9jp+1rssZCvGSqt94FPdC6Au" crossorigin="">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="<?= htmlspecialchars(asset('assets/css/app.css'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body class="dashboard dashboard--analytics">
@@ -56,9 +57,17 @@ $canViewInvoice = Auth::can('view_invoice');
                 <a href="<?= htmlspecialchars(route_path('/programs'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
                     <span>Program Bimbel</span>
                 </a>
+                <a href="<?= htmlspecialchars(route_path('/products'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
+                    <span>Produk</span>
+                </a>
                 <?php if ($canManageUsers): ?>
                 <a href="<?= htmlspecialchars(route_path('/users'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
                     <span>Manajemen Pengguna</span>
+                </a>
+                <?php endif; ?>
+                <?php if ($canViewActivityLogs): ?>
+                <a href="<?= htmlspecialchars(route_path('/activity-logs'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
+                    <span>Log Aktivitas</span>
                 </a>
                 <?php endif; ?>
             </nav>
@@ -68,7 +77,7 @@ $canViewInvoice = Auth::can('view_invoice');
             <header class="dashboard__header">
                 <div>
                     <h1>Laporan Peraihan Target</h1>
-                    <p>Monitor pencapaian jumlah siswa dan omzet bimbel secara real-time.</p>
+                    <p>Monitor pencapaian jumlah siswa dan omzet secara real-time.</p>
                 </div>
                 <div class="header-actions">
                     <?php if ($canExport): ?>
@@ -394,7 +403,7 @@ $canViewInvoice = Auth::can('view_invoice');
         window.APP_CAN_VIEW_INVOICE = <?= $canViewInvoice ? 'true' : 'false' ?>;
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-tAGcCfawKKrkaI0s5momkGLumZ5qX6Ch12HaxDTXiiMHDL/95B2S/bR5fes2w4i4" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="<?= htmlspecialchars(asset('assets/js/dashboard.js'), ENT_QUOTES, 'UTF-8') ?>" defer></script>
     <script src="<?= htmlspecialchars(asset('assets/js/dashboard-analytics.js'), ENT_QUOTES, 'UTF-8') ?>" defer></script>
     <script src="<?= htmlspecialchars(asset('assets/js/dashboard-map.js'), ENT_QUOTES, 'UTF-8') ?>" defer></script>

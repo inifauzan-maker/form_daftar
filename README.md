@@ -35,6 +35,7 @@ Formulir pendaftaran bimbingan belajar berbasis PHP (mini MVC) dengan integrasi 
 - **Nomor HP** divalidasi agar diawali `62` dengan 11-15 digit.
 - Submisi form dikirim sebagai JSON ke `/api/registrations` dan disimpan di tabel `registrations` dengan status awal `student_status=pending` dan `payment_status=unpaid`.
 - **Dashboard Admin** tersedia di `/dashboard` untuk memantau data pendaftar, memperbarui status siswa, serta proses pembayaran melalui endpoint `GET /api/registrations` dan `POST /api/registrations/status`.
+- **Log Aktivitas Admin** dapat diakses melalui `/activity-logs` (izin `view_activity_logs`) untuk meninjau siapa yang login, mengekspor data, memperbarui status pendaftar, hingga mengubah pengguna/role/izin/program. Filter kata kunci, aksi, ID pengguna, dan ukuran halaman tersedia bersama endpoint `GET /api/activity-logs`.
 - Dari dashboard, admin dapat mengekspor CSV (`/dashboard/export`) atau mengunduh invoice PDF per pendaftar (`/dashboard/invoice?id=ID`).
 - **Program Bimbel** tersedia di menu baru `/programs` untuk mencatat biaya pendaftaran, biaya pendidikan, target siswa, target omzet, serta poster program. Data ini bisa diunggah beserta gambar sehingga mengikuti spreadsheet peraihan internal.
 
@@ -51,6 +52,7 @@ Berkas tersebut menambahkan 6 pendaftar fiktif (Bandung, Cimahi, Jakarta Selatan
 - Akses ke dashboard, invoice, dan API administrasi kini dilindungi login. Pengunjung publik tetap dapat mengisi formulir pendaftaran tanpa autentikasi.
 - Sistem role-based access control (RBAC) terdiri dari tabel `users`, `roles`, `permissions`, `role_user`, `permission_role`, dan `permission_user`.
 - Tiga peran awal disediakan: `Administrator` (akses penuh), `Staff` (kelola pendaftar & pembayaran), `Viewer` (hanya lihat dashboard). Admin bawaan otomatis diberi peran `Administrator`.
+- Izin granular baru `view_activity_logs` memungkinkan tim keamanan melakukan audit log tanpa harus memberikan akses `manage_users`.
 - Halaman `/users` menampilkan UI manajemen pengguna, peran, dan izin:
   - Tambah / ubah / nonaktifkan pengguna, sekaligus atur peran dan izin langsung.
   - Tambah / ubah / hapus peran beserta daftar izinnya (khusus pengguna dengan izin `manage_roles`).

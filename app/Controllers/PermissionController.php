@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Auth;
+use App\Core\ActivityLogger;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
@@ -53,6 +54,16 @@ class PermissionController extends Controller
             return;
         }
 
+        ActivityLogger::log(
+            $this->request,
+            'permissions.create',
+            'Menambahkan izin baru.',
+            [
+                'permission_id' => $id,
+                'slug' => $payload['slug'],
+            ]
+        );
+
         $this->response->json([
             'message' => 'Izin berhasil dibuat.',
             'id' => $id,
@@ -92,6 +103,16 @@ class PermissionController extends Controller
             return;
         }
 
+        ActivityLogger::log(
+            $this->request,
+            'permissions.update',
+            'Memperbarui izin.',
+            [
+                'permission_id' => (int) $payload['id'],
+                'slug' => $payload['slug'],
+            ]
+        );
+
         $this->response->json(['message' => 'Izin berhasil diperbarui.']);
     }
 
@@ -114,6 +135,16 @@ class PermissionController extends Controller
         }
 
         $this->permissions->delete($id);
+
+        ActivityLogger::log(
+            $this->request,
+            'permissions.delete',
+            'Menghapus izin.',
+            [
+                'permission_id' => $id,
+                'slug' => $permission['slug'],
+            ]
+        );
 
         $this->response->json(['message' => 'Izin berhasil dihapus.']);
     }
@@ -172,4 +203,3 @@ class PermissionController extends Controller
         return ['general' => ['Terjadi kesalahan saat menyimpan izin.']];
     }
 }
-

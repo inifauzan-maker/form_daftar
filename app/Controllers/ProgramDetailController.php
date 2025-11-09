@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Auth;
+use App\Core\ActivityLogger;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Response;
@@ -12,6 +13,9 @@ class ProgramDetailController extends Controller
 {
     private Program $programs;
     private array $categories = ['SD_SMP', 'X_XI', 'XII'];
+    private const MAX_DECIMAL_12_2 = 9999999999.99;
+    private const MAX_DECIMAL_14_2 = 999999999999.99;
+    private const MAX_INT_UNSIGNED = 4294967295;
 
     public function __construct(Request $request, Response $response)
     {
@@ -78,6 +82,22 @@ class ProgramDetailController extends Controller
             $errors[] = 'Target siswa dan omzet tidak boleh negatif.';
         }
 
+        if ($registrationFee > self::MAX_DECIMAL_12_2) {
+            $errors[] = 'Biaya pendaftaran melebihi batas maksimal ' . $this->formatMoney(self::MAX_DECIMAL_12_2) . '.';
+        }
+
+        if ($tuitionFee > self::MAX_DECIMAL_12_2) {
+            $errors[] = 'Biaya pendidikan melebihi batas maksimal ' . $this->formatMoney(self::MAX_DECIMAL_12_2) . '.';
+        }
+
+        if ($targetRevenue > self::MAX_DECIMAL_14_2) {
+            $errors[] = 'Target omzet melebihi batas maksimal ' . $this->formatMoney(self::MAX_DECIMAL_14_2) . '.';
+        }
+
+        if ($targetStudents > self::MAX_INT_UNSIGNED) {
+            $errors[] = 'Target siswa melebihi kapasitas sistem.';
+        }
+
         $existing = $this->programs->findByCode($code);
         if ($existing && (!$isUpdate || $existing['id'] !== $id)) {
             $errors[] = 'Kode program sudah dipakai.';
@@ -122,11 +142,22 @@ class ProgramDetailController extends Controller
                 'image_path' => $imagePath,
             ]);
 
+            ActivityLogger::log(
+                $this->request,
+                'programs.update',
+                'Memperbarui program bimbel.',
+                [
+                    'program_id' => $id,
+                    'code' => $code,
+                    'class_category' => $classCategory,
+                ]
+            );
+
             $this->redirectWithMessage('success', 'Program berhasil diperbarui.');
             return;
         }
 
-        $this->programs->create([
+        $programId = $this->programs->create([
             'code' => $code,
             'name' => $name,
             'class_category' => $classCategory,
@@ -137,6 +168,17 @@ class ProgramDetailController extends Controller
             'description' => $description,
             'image_path' => $imagePath,
         ]);
+
+        ActivityLogger::log(
+            $this->request,
+            'programs.create',
+            'Menambahkan program bimbel.',
+            [
+                'program_id' => $programId,
+                'code' => $code,
+                'class_category' => $classCategory,
+            ]
+        );
 
         $this->redirectWithMessage('success', 'Program berhasil ditambahkan.');
     }
@@ -162,6 +204,17 @@ class ProgramDetailController extends Controller
         }
 
         $this->programs->delete($id);
+
+        ActivityLogger::log(
+            $this->request,
+            'programs.delete',
+            'Menghapus program bimbel.',
+            [
+                'program_id' => $id,
+                'code' => $record['code'] ?? null,
+            ]
+        );
+
         $this->redirectWithMessage('success', 'Program dihapus.');
     }
 
@@ -181,6 +234,11 @@ class ProgramDetailController extends Controller
     private function sanitizeInt(mixed $value): int
     {
         return max(0, (int) preg_replace('/[^\d-]/', '', (string) $value));
+    }
+
+    private function formatMoney(float $value): string
+    {
+        return 'Rp' . number_format($value, 0, ',', '.');
     }
 
     private function handleUpload(array $file, array &$errors): ?string

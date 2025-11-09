@@ -6,6 +6,7 @@ $user = isset($user) && is_array($user) ? $user : Auth::user();
 $programs = isset($programs) && is_array($programs) ? $programs : [];
 $canManagePrograms = isset($canManagePrograms) ? (bool) $canManagePrograms : false;
 $categories = isset($categories) && is_array($categories) ? $categories : ['SD_SMP', 'X_XI', 'XII'];
+$canViewActivityLogs = Auth::can('view_activity_logs');
 
 $totalStudents = 0;
 $totalRevenue = 0.0;
@@ -51,9 +52,17 @@ function format_rupiah(float $value): string
                 <a href="<?= htmlspecialchars(route_path('/programs'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link is-active">
                     <span>Program Bimbel</span>
                 </a>
+                <a href="<?= htmlspecialchars(route_path('/products'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
+                    <span>Produk</span>
+                </a>
                 <a href="<?= htmlspecialchars(route_path('/users'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
                     <span>Manajemen Pengguna</span>
                 </a>
+                <?php if ($canViewActivityLogs): ?>
+                <a href="<?= htmlspecialchars(route_path('/activity-logs'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
+                    <span>Log Aktivitas</span>
+                </a>
+                <?php endif; ?>
             </nav>
         </aside>
 

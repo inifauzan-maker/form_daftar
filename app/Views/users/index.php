@@ -6,6 +6,7 @@ $user = isset($user) && is_array($user) ? $user : Auth::user();
 $permissions = isset($user['permissions']) && is_array($user['permissions']) ? $user['permissions'] : [];
 $canManageRoles = in_array('manage_roles', $permissions, true);
 $canManagePermissions = in_array('manage_permissions', $permissions, true);
+$canViewActivityLogs = Auth::can('view_activity_logs');
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -38,9 +39,17 @@ $canManagePermissions = in_array('manage_permissions', $permissions, true);
                 <a href="<?= htmlspecialchars(route_path('/programs'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
                     <span>Program Bimbel</span>
                 </a>
+                <a href="<?= htmlspecialchars(route_path('/products'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
+                    <span>Produk</span>
+                </a>
                 <a href="<?= htmlspecialchars(route_path('/users'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link is-active">
                     <span>Manajemen Pengguna</span>
                 </a>
+                <?php if ($canViewActivityLogs): ?>
+                <a href="<?= htmlspecialchars(route_path('/activity-logs'), ENT_QUOTES, 'UTF-8') ?>" class="sidebar-link">
+                    <span>Log Aktivitas</span>
+                </a>
+                <?php endif; ?>
             </nav>
         </aside>
 

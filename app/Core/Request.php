@@ -55,6 +55,35 @@ class Request
         );
     }
 
+    public function ip(): string
+    {
+        $candidates = ['HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR'];
+
+        foreach ($candidates as $key) {
+            if (!isset($_SERVER[$key]) || $_SERVER[$key] === '') {
+                continue;
+            }
+
+            $value = (string) $_SERVER[$key];
+            if ($key === 'HTTP_X_FORWARDED_FOR') {
+                $value = explode(',', $value)[0] ?? $value;
+            }
+
+            $value = trim($value);
+
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return '0.0.0.0';
+    }
+
+    public function userAgent(): string
+    {
+        return trim((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    }
+
     public function isJson(): bool
     {
         $contentType = $_SERVER['CONTENT_TYPE'] ?? '';

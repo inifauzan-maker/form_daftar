@@ -1,5 +1,6 @@
 <?php
 
+use App\Controllers\ActivityLogController;
 use App\Controllers\Api\ProgramController;
 use App\Controllers\Api\SchoolController;
 use App\Controllers\AuthController;
@@ -7,6 +8,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\InvoiceController;
 use App\Controllers\PermissionController;
 use App\Controllers\ProgramDetailController;
+use App\Controllers\ProductController;
 use App\Controllers\RegistrationController;
 use App\Controllers\RoleController;
 use App\Controllers\UserController;
@@ -24,6 +26,7 @@ $router->get('/api/dashboard/geography', [DashboardController::class, 'geography
 $router->get('/api/registrations', [DashboardController::class, 'list']);
 $router->get('/dashboard/export', [DashboardController::class, 'export']);
 $router->get('/dashboard/invoice', [InvoiceController::class, 'show']);
+$router->get('/products', [ProductController::class, 'index']);
 $router->get('/api/schools', [SchoolController::class, 'search']);
 $router->get('/api/programs', [ProgramController::class, 'index']);
 $router->post('/api/registrations', [RegistrationController::class, 'store']);
@@ -36,6 +39,8 @@ $router->get('/api/users', [UserController::class, 'list']);
 $router->post('/api/users', [UserController::class, 'store']);
 $router->post('/api/users/update', [UserController::class, 'update']);
 $router->post('/api/users/delete', [UserController::class, 'delete']);
+$router->get('/activity-logs', [ActivityLogController::class, 'index']);
+$router->get('/api/activity-logs', [ActivityLogController::class, 'list']);
 $router->get('/api/roles', [RoleController::class, 'list']);
 $router->post('/api/roles', [RoleController::class, 'store']);
 $router->post('/api/roles/update', [RoleController::class, 'update']);
