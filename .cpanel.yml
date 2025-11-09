@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/u1521077/public_html/formdaftar.bimbelgambar.id
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/mkdir -p $DEPLOYPATH/public/uploads
+    - /usr/bin/rsync -av --delete --exclude='.git/' --exclude='.github/' --exclude='.cpanel/' --exclude='.env' --exclude='sivm_konten/' --exclude='public/uploads/' ./ $DEPLOYPATH
+    - /bin/find $DEPLOYPATH -type d -exec /bin/chmod 755 {} \;
+    - /bin/find $DEPLOYPATH -type f -exec /bin/chmod 644 {} \;
