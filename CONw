@@ -1,0 +1,100 @@
+        $sql = 'SELECT DISTINCT YEAR(created_at) AS year
+                FROM registrations
+                ORDER BY YEAR(created_at) DESC';
+
+        $statement = $this->connection->prepare($sql);
+        $statement->execute();
+
+        $years = array_map(static fn ($row) => (int) ($row['year'] ?? 0), $statement->fetchAll());
+
+        return array_values(array_filter($years, static fn ($year) => $year > 0));
+    }
+
+    public function availablePrograms(): array
+    {
+        $sql = 'SELECT id, name, code
+                FROM programs
+                ORDER BY name ASC';
+
+        $statement = $this->connection->prepare($sql);
+        $statement->execute();
+
+        return array_map(static function (array $row): array {
+            return [
+                'id' => (int) ($row['id'] ?? 0),
+                'name' => $row['name'] ?? '',
+                'code' => $row['code'] ?? '',
+            ];
+        }, $statement->fetchAll());
+    }
+
+    public function locationSummary(?string $province = null, ?string $city = null): array
+    {
+        $conditions = [];
+        $params = [];
+
+        if ($province !== null && $province !== '') {
+            $conditions[] = 'r.province = :province';
+            $params['province'] = $province;
+        }
+
+        if ($city !== null && $city !== '') {
+            $conditions[] = 'r.city = :city';
+            $params['city'] = $city;
+        }
+
+        $where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
+        $sql = 'SELECT r.province,
+                       r.city,
+                       COUNT(*) AS total,
+                       SUM(CASE WHEN r.payment_status = \'paid\' THEN 1 ELSE 0 END) AS total_paid,
+                       SUM(CASE WHEN r.payment_status = \'partial\' THEN 1 ELSE 0 END) AS total_partial,
+                       SUM(CASE WHEN r.payment_status = \'unpaid\' THEN 1 ELSE 0 END) AS total_unpaid
+                FROM registrations r ' . $where . '
+                GROUP BY r.province, r.city
+                ORDER BY r.province ASC, r.city ASC';
+
+        $statement = $this->connection->prepare($sql);
+        foreach ($params as $key => $value) {
+            $statement->bindValue(':' . $key, $value);
+        }
+        $statement->execute();
+
+        return array_map(static function (array $row): array {
+            return [
+                'province' => $row['province'] ?? null,
+                'city' => $row['city'] ?? null,
+                'total' => (int) ($row['total'] ?? 0),
+                'paid' => (int) ($row['total_paid'] ?? 0),
+                'partial' => (int) ($row['total_partial'] ?? 0),
+                'unpaid' => (int) ($row['total_unpaid'] ?? 0),
+            ];
+        }, $statement->fetchAll());
+    }
+
+    public function distinctProvinces(): array
+    {
+        $sql = 'SELECT DISTINCT province
+                FROM registrations
+                WHERE province IS NOT NULL AND province <> \'\'
+                ORDER BY province';
+
+        $statement = $this->connection->prepare($sql);
+        $statement->execute();
+
+        return array_map(static fn ($row) => $row['province'], $statement->fetchAll());
+    }
+
+    public function distinctCities(?string $province = null): array
+    {
+        $conditions = ['city IS NOT NULL', 'city <> \'\''];
+        $params = [];
+
+        if ($province !== null && $province !== '') {
+            $conditions[] = 'province = :province';
+            $params['province'] = $province;
+        }
+
+        $where = 'WHERE ' . implode(' AND ', $conditions);
+
