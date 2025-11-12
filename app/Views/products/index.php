@@ -112,9 +112,9 @@ function progress_width(?float $percent): float
 
             <section class="product-hero card">
                 <div class="product-hero__intro">
-                    <p class="badge">Poster Library</p>
-                    <h2>Galeri Poster Program Bimbel</h2>
-                    <p>Inspirasi materi promo berbasis target siswa dan omzet. Kurasi poster terbaik lalu bagikan ke tim marketing.</p>
+                    <p class="badge">Brosur produk </p>
+                    <h2>Galeri Brosur Program Bimbel</h2>
+                   
                 </div>
                 <div class="product-hero__summary">
                     <article>
@@ -149,45 +149,6 @@ function progress_width(?float $percent): float
                 </div>
             </section>
 
-            <div class="product-tabs">
-                <button class="product-tabs__item is-active">Trending di Bimbel</button>
-                <button class="product-tabs__item">Template Video</button>
-                <button class="product-tabs__item">Template Gambar</button>
-                <button class="product-tabs__item">Favorit Tim</button>
-            </div>
-
-            <div class="product-controls card">
-                <div class="product-controls__group">
-                    <label for="filter-level">Jenjang</label>
-                    <select id="filter-level">
-                        <option value="">Semua Jenjang</option>
-                        <?php foreach ($categoryLabels as $value => $label): ?>
-                        <option value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="product-controls__group">
-                    <label for="filter-kpi">Fokus KPI</label>
-                    <select id="filter-kpi">
-                        <option value="">Semua KPI</option>
-                        <option value="students">Siswa</option>
-                        <option value="revenue">Omzet</option>
-                        <option value="conversion">Konversi</option>
-                    </select>
-                </div>
-                <div class="product-controls__group product-controls__group--inline">
-                    <label for="filter-duration">Durasi Kampanye</label>
-                    <div class="product-filter-pills">
-                        <button class="is-active">Sprint</button>
-                        <button>1 Bulan</button>
-                        <button>Quartal</button>
-                    </div>
-                </div>
-                <div class="product-controls__search">
-                    <input type="search" placeholder="Cari poster, program, atau kode promo...">
-                </div>
-            </div>
-
             <section class="poster-grid">
                 <?php if (empty($products)): ?>
                 <div class="product-gallery__empty card">
@@ -206,10 +167,10 @@ function progress_width(?float $percent): float
                 <article class="poster-card">
                     <div class="poster-card__media">
                         <?php if ($posterPath): ?>
-                        <img src="<?= htmlspecialchars($posterPath, ENT_QUOTES, 'UTF-8') ?>" alt="Poster <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                        <img src="<?= htmlspecialchars($posterPath, ENT_QUOTES, 'UTF-8') ?>" alt="Brosur <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <?php else: ?>
                         <div class="product-card__poster-empty">
-                            <span>Poster belum diunggah</span>
+                            <span>Brosur belum diunggah</span>
                         </div>
                         <?php endif; ?>
                         <span class="poster-card__badge"><?= htmlspecialchars($categoryLabel, ENT_QUOTES, 'UTF-8') ?></span>
